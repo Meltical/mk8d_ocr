@@ -31,8 +31,8 @@ if not os.path.exists(os.path.join(os.getcwd(), "war")):
     os.mkdir(os.path.join(os.getcwd(), "war"))
 
 folderPath = os.path.join(str(cwd), "war", folderName)
-if os.path.exists(folderName):
-    print("Folder Name Already Exists")
+if os.path.exists(folderPath):
+    print("Folder name already exists.")
     sys.exit()
 os.mkdir(folderPath)
 
@@ -44,7 +44,15 @@ if args.max:
 
 # --card
 # Get Video from Capture Card (720p)
-video = cv2.VideoCapture(0)
+if args.card:
+    card = args.card
+video = cv2.VideoCapture(int(card))
+
+success, img = video.read()
+if(not success):
+    print("Wrong capture card selected (" + card + "). Try another index.")
+    sys.exit()
+
 video.set(3, 1280)
 video.set(4, 720)
 
