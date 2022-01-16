@@ -1,3 +1,4 @@
+import argparse
 import time
 import cv2
 import os
@@ -7,43 +8,56 @@ from datetime import datetime
 # Template
 x = cv2.imread("./samples/x.jpg")
 
-# Get Video from Capture Card (720p)
-video = cv2.VideoCapture(-1)
-video.set(3, 1280)
-video.set(4, 720)
-
 # Variables
 roundNbr = 1
 maxRoundNbr = 12
 
 # Parse arguments: 
-#  [Argv1] = folderName, Default: Current Date (ex: 01-01-2022 20:00:00)
+parser=argparse.ArgumentParser()
+parser.add_argument('--name', help='Change Folder Name (Default: Current Date)')
+parser.add_argument('--max', help='Change Max Round Number (Default: 12)')
+parser.add_argument('--card', help='Change Capture Card Index (Default: 1)')
+args=parser.parse_args()
+
+
+# --name
 cwd = os.path.abspath(os.getcwd())
-if sys.argv[1:]:
-    folderName = str(sys.argv[1])
-    folderPath = os.path.join(str(cwd), "war", folderName)
+if args.name:
+    folderName = str(args.name)
 else:
-    folderPath = os.path.join(str(cwd), "war", datetime.now().strftime('%d-%m-%Y %H%M%S'))
+    folderName = datetime.now().strftime('%d-%m-%Y_%H%M%S')
+
+if not os.path.exists(os.path.join(os.getcwd(), "war")):
+    os.mkdir(os.path.join(os.getcwd(), "war"))
+
+folderPath = os.path.join(str(cwd), "war", folderName)
+if os.path.exists(folderName):
+    print("Folder Name Already Exists")
+    sys.exit()
 os.mkdir(folderPath)
 
-#  [Argv2] = roundNbr, Default: 1
-if sys.argv[2:]:
-    roundNbr = int(sys.argv[2])
 
-#  [Argv3] = maxRoundNbr, Default: 12
-if sys.argv[3:]:
-    maxRoundNbr = int(sys.argv[3])
+# --max
+if args.max:
+    maxRoundNbr = int(args.max)
+
+
+# --card
+# Get Video from Capture Card (720p)
+video = cv2.VideoCapture(0)
+video.set(3, 1280)
+video.set(4, 720)
 
 # Start Web Server
 os.system("start run_local_server.bat")
 
-print("Capturing " + str(maxRoundNbr) + " Rounds In Folder: " + folderPath)
+print("Capturing " + str(maxRoundNbr) + " Rounds In Folder: " + folderPath + "...")
 
 # Main loop
 while True:
-    if (cv2.waitKey(1) & 0xFF == ord('q')) or roundNbr == maxRoundNbr:
+    if (cv2.waitKey(1) & 0xFF == ord('q')) or roundNbr == maxRoundNbr + 1:
         break
-
+        
     # Get one frame, resize and crop
     success, img = video.read()
     cv2.imshow("Result", img)
@@ -61,10 +75,16 @@ while True:
         # Get leaderboard and save it
         success, img = video.read()
         cv2.resize(img, (1280, 720))
-        filename = "Round_" + str(roundNbr) + ".jpg"
-        filePath = os.path.join("war", folderName, filename)
+        fileName = "Round_" + str(roundNbr) + ".jpg"
+        
+        filePath = os.path.join(folderPath, fileName)
         cv2.imwrite(filePath, img)
-        os.system("start http://localhost/table.html?file=" + filePath)
+        os.system("start http://localhost/table.html?file=" + folderName + "/" + fileName)
+
 
         roundNbr += 1
         time.sleep(10)
+        print("Captured Round #" + str(roundNbr - 1))
+        
+
+print("Capturing Ended.")
