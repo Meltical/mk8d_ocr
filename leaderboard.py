@@ -17,6 +17,7 @@ parser=argparse.ArgumentParser()
 parser.add_argument('--name', help='Change Folder Name (Default: Current Date)')
 parser.add_argument('--max', help='Change Max Round Number (Default: 12)')
 parser.add_argument('--card', help='Change Capture Card Index (Default: 1)')
+parser.add_argument('--debug', help='Show the cv2 screen (Default: false)', dest='debug', default=False, action='store_true')
 args=parser.parse_args()
 
 
@@ -69,7 +70,8 @@ while True:
         
     # Get one frame, resize and crop
     success, img = video.read()
-    cv2.imshow("Result", img)
+    if args.debug:
+        cv2.imshow("Result", img)
     cv2.resize(img, (1280, 720))
 
     cropped = img[38:38+32, 44:44+32]
