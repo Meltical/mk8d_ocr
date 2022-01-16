@@ -44,6 +44,7 @@ if args.max:
 
 # --card
 # Get Video from Capture Card (720p)
+card = 1
 if args.card:
     card = args.card
 video = cv2.VideoCapture(int(card))
