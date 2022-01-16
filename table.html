@@ -147,61 +147,7 @@
 			text-shadow: none;
 		}
 	</style>
-	
 	<body onload="main(); setup(); queueRefresh()" style="text-align:center; margin:0; margin-bottom:1em;">
-	
-		<script>
-			const referrer = encodeURIComponent(document.referrer)
-			const search = (!referrer || referrer == "") ? "" :
-				((window.location.search == "" ? "?" : window.location.search + "&") + "referrer=" + referrer)
-			
-			window.location.href = "https://gb.hlorenzi.com/table" + search
-		</script>
-	
-		<table style="margin:auto;">
-			<tr style="width:100vw;"><td style="width:100vw;">
-				<a href="https://www.youtube.com/watch?v=f143Heg4GJw" onclick="trackOutboundLink('https://www.youtube.com/watch?v=f143Heg4GJw'); return false;" target="_blank" style="text-decoration: none;">
-					<div id="divGameAd">
-						<table style="margin-left:auto; margin-right:auto; padding:0;">
-							<tr style="padding:0;"><td style="padding:0;">
-								<img src="assets/ninjin.png"></img>
-							</td><td style="padding:0;">
-								Check out my new game, <span class="adName">Ninjin: Clash of Carrots!</span>
-								<br>
-								Solo, Local & Online Co-op
-								<br>
-								<span class="adDate">OUT NOW! <span class="adDemo">DEMO AVAILABLE!</span></span>
-								<br>
-								Steam /
-								<img src="https://seeklogo.com/images/N/nintendo-switch-logo-38D4F5C7E7-seeklogo.com.png" style="width:1em; position:relative; top:0.1em;"></img> Nintendo Switch /
-								<img src="https://logodownload.org/wp-content/uploads/2017/05/playstation-4-logo-ps4-6.png" style="width:1em; position:relative; top:0.05em;"></img> PS4 /
-								<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Xbox_one_logo.svg/1024px-Xbox_one_logo.svg.png" style="width:1em; position:relative; top:0.1em;"></img> Xbox One
-							</td><td style="padding:0;">
-								<img src="assets/akai.png"></img>
-							</td></tr>
-						</table>
-					</div>
-				</a>
-			</td></tr>
-			
-			<tr style="width:100vw;"><td style="width:100vw;">
-				<a href="https://gb.hlorenzi.com" onclick="trackOutboundLink('https://gb.hlorenzi.com'); return false;" target="_blank" style="text-decoration: none;">
-					<div id="divGameAd2">
-						<table style="margin-left:auto; margin-right:auto; padding:0;">
-							<tr style="padding:0;"><td style="padding:0;">
-								<img style="border-radius:10em;width:6em;height:auto;padding:0.5em;" src="https://cdn.discordapp.com/avatars/547961278572789761/ae7587406d19c2d0ee0728066c3deebb.png?size=128"></img>
-							</td><td style="padding:0; font-size:130%;">
-								Register your <span style="font-size:150%;color:#808">team</span> on my new site!
-								<br>
-								Keep a record of <span style="font-size:120%;color:#fff">all your matches!</span>
-								<br>
-								<span style="font-size:110%;color:#808">Discord bot</span> for integration into your server!
-							</td></tr>
-						</table>
-					</div>
-				</a>
-			</td></tr>
-		
 			<tr><td>
 				<table style="margin:auto;">
 					<tr>
@@ -220,7 +166,9 @@
 							<br>
 							<canvas id="canvasTable" width="860" height="520" style="display:none;"></canvas>
 							<div id="divTable">
-								<img id="imgTable"></img>
+								<a id="tableDownload" href="#" download="Table.jpg">
+									<img id="imgTable"></img>
+								</a> 
 							</div>
 							<span id="spanTotal"></span>
 							<span id="spanWarning"></span>
@@ -265,6 +213,10 @@
 		<script src="src/image.js"></script>
 		<script src="src/inputImage.js"></script>
 		<script src="src/teamRegistry.js"></script>
+		<script> 
+			const urlParams = new URLSearchParams(window.location.search);
+			setImageFromSrc("http://localhost/table.html?"+ urlParams.get("file"))
+		</script>
 	</body>
 
 </html>
