@@ -49,14 +49,12 @@ card = 1
 if args.card:
     card = args.card
 video = cv2.VideoCapture(int(card))
-
-success, img = video.read()
-if(not success):
-    print("Wrong capture card selected (" + card + "). Try another index.")
-    sys.exit()
-
 video.set(3, 1280)
 video.set(4, 720)
+
+if not video.isOpened():
+    print("Wrong capture card selected (" + str(card) + "). Try another index.")
+    sys.exit()
 
 # Start Web Server
 os.system("start run_local_server.bat")
@@ -66,13 +64,16 @@ print("Capturing " + str(maxRoundNbr) + " Rounds In Folder: " + folderPath + "..
 # Main loop
 while True:
     if (cv2.waitKey(1) & 0xFF == ord('q')) or roundNbr == maxRoundNbr + 1:
-        break
-        
+        video.release()
+        cv2.destroyAllWindows()
+        break  
+
     # Get one frame, resize and crop
     success, img = video.read()
+    cv2.resize(img, (1280, 720))
+
     if args.debug:
         cv2.imshow("Result", img)
-    cv2.resize(img, (1280, 720))
 
     cropped = img[38:38+32, 44:44+32]
     result = cv2.matchTemplate(cropped, x, cv2.TM_CCOEFF_NORMED)
