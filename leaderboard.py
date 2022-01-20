@@ -72,13 +72,13 @@ while True:
     success, img = video.read()
     cv2.resize(img, (1920, 1080))
 
-    if args.debug:
-        cv2.imshow("Result", img)
-        cv2.imshow("cropped", cropped)
-
     cropped = img[57:57+48, 66:66+48]
     result = cv2.matchTemplate(cropped, x, cv2.TM_CCOEFF_NORMED)
     (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(result)
+
+    if args.debug:
+        cv2.imshow("Result", img)
+        cv2.imshow("cropped", cropped)
 
     # If matching template over 70%
     if(maxVal > 0.7):
