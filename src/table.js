@@ -838,14 +838,13 @@ function drawTableDefault(elem, totalElem, warningElem, gamedata)
 	// Load rank images
 	let rankSrcs =
 	[
-		window.location.href.substr(0, window.location.href.lastIndexOf("/")) + "/assets/1st.png",
-		window.location.href.substr(0, window.location.href.lastIndexOf("/")) + "/assets/2nd.png",
-		window.location.href.substr(0, window.location.href.lastIndexOf("/")) + "/assets/3rd.png",
-		window.location.href.substr(0, window.location.href.lastIndexOf("/")) + "/assets/turtle.png",
+		"assets/1st.png",
+		"assets/2nd.png",
+		"assets/3rd.png",
+		"assets/turtle.png",
 	]
 	
 	let allRanksLoaded = true
-	for (let rankSrc of rankSrcs)
 	for (let i = 0; i < rankSrcs.length; i++)
 		allRanksLoaded &= loadImage("imgRank" + (i + 1), rankSrcs[i])
 	
@@ -1391,11 +1390,10 @@ function drawTableEvent(elem, totalElem, warningElem, gamedata, style)
 	// Load rank images
 	let rankSrcs =
 	[
-		window.location.href.substr(0, window.location.href.lastIndexOf("/")) + "/assets/" + style.icon + ".png"
+		"/assets/" + style.icon + ".png"
 	]
 	
 	let allRanksLoaded = true
-	for (let rankSrc of rankSrcs)
 	for (let i = 0; i < rankSrcs.length; i++)
 		allRanksLoaded &= loadImage("imgRank" + (i + 1), rankSrcs[i])
 	
