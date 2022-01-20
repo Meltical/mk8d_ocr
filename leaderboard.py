@@ -49,8 +49,8 @@ card = 1
 if args.card:
     card = args.card
 video = cv2.VideoCapture(int(card))
-video.set(3, 1280)
-video.set(4, 720)
+video.set(3, 1920)
+video.set(4, 1080)
 
 if not video.isOpened():
     print("Wrong capture card selected (" + str(card) + "). Try another index.")
@@ -70,12 +70,13 @@ while True:
 
     # Get one frame, resize and crop
     success, img = video.read()
-    cv2.resize(img, (1280, 720))
+    cv2.resize(img, (1920, 1080))
 
     if args.debug:
         cv2.imshow("Result", img)
+        cv2.imshow("cropped", cropped)
 
-    cropped = img[38:38+32, 44:44+32]
+    cropped = img[57:57+48, 66:66+48]
     result = cv2.matchTemplate(cropped, x, cv2.TM_CCOEFF_NORMED)
     (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(result)
 
@@ -86,7 +87,7 @@ while True:
 
         # Get leaderboard and save it
         success, img = video.read()
-        cv2.resize(img, (1280, 720))
+        cv2.resize(img, (1920, 1080))
         fileName = "Round_" + str(roundNbr) + ".jpg"
         
         filePath = os.path.join(folderPath, fileName)
