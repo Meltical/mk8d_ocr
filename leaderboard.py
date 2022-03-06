@@ -11,6 +11,7 @@ x = cv2.imread("./samples/x.jpg")
 # Variables
 roundNbr = 1
 maxRoundNbr = 12
+manualCapturePath = os.path.join(os.getcwd(), "manual_capture")
 
 # Parse arguments: 
 parser=argparse.ArgumentParser()
@@ -27,6 +28,9 @@ if args.name:
     folderName = str(args.name)
 else:
     folderName = datetime.now().strftime('%d-%m-%Y_%H%M%S')
+
+if not os.path.exists(manualCapturePath):
+    os.mkdir(manualCapturePath)
 
 if not os.path.exists(os.path.join(os.getcwd(), "war")):
     os.mkdir(os.path.join(os.getcwd(), "war"))
@@ -67,6 +71,13 @@ while True:
         video.release()
         cv2.destroyAllWindows()
         break  
+
+    if (cv2.waitKey(1) & 0xFF == ord('c')):
+        success, img = video.read()
+        cv2.resize(img, (1920, 1080))
+        fileName = datetime.now().strftime('%d-%m-%Y_%H%M%S') + ".jpg"
+        filePath = os.path.join(manualCapturePath, fileName)
+        cv2.imwrite(filePath, img)
 
     # Get one frame, resize and crop
     success, img = video.read()
