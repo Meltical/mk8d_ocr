@@ -3,6 +3,7 @@ import time
 import cv2
 import os
 import sys
+import keyboard
 from datetime import datetime
 
 # Template
@@ -20,7 +21,6 @@ parser.add_argument('--max', help='Change Max Round Number (Default: 12)')
 parser.add_argument('--card', help='Change Capture Card Index (Default: 1)')
 parser.add_argument('--debug', help='Show the cv2 screen (Default: false)', dest='debug', default=False, action='store_true')
 args=parser.parse_args()
-
 
 # --name
 cwd = os.path.abspath(os.getcwd())
@@ -41,11 +41,9 @@ if os.path.exists(folderPath):
     sys.exit()
 os.mkdir(folderPath)
 
-
 # --max
 if args.max:
     maxRoundNbr = int(args.max)
-
 
 # --card
 # Get Video from Capture Card (720p)
@@ -67,16 +65,17 @@ print("Capturing " + str(maxRoundNbr) + " Rounds In Folder: " + folderPath + "..
 
 # Main loop
 while True:
-    if (cv2.waitKey(1) & 0xFF == ord('q')) or roundNbr == maxRoundNbr + 1:
+    if keyboard.read_key() == 'q' or roundNbr == maxRoundNbr + 1:
         video.release()
         cv2.destroyAllWindows()
-        break  
+        break
 
-    if (cv2.waitKey(1) & 0xFF == ord('c')):
+    if keyboard.read_key() == "c":
         success, img = video.read()
         cv2.resize(img, (1920, 1080))
         fileName = datetime.now().strftime('%d-%m-%Y_%H%M%S') + ".jpg"
         filePath = os.path.join(manualCapturePath, fileName)
+        print("Manual Capture saved as '" + filePath + "'")
         cv2.imwrite(filePath, img)
 
     # Get one frame, resize and crop
@@ -105,10 +104,8 @@ while True:
         cv2.imwrite(filePath, img)
         os.system("start http://localhost/table.html?file=" + folderName + "/" + fileName)
 
-
         roundNbr += 1
         time.sleep(10)
         print("Captured Round #" + str(roundNbr - 1))
-        
 
 print("Capturing Ended.")
