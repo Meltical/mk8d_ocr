@@ -5,6 +5,7 @@ import os
 import sys
 import keyboard
 from datetime import datetime
+from threading import Thread
 
 # Template
 x = cv2.imread("./samples/x.jpg")
@@ -63,49 +64,58 @@ os.system("start run_local_server.bat")
 
 print("Capturing " + str(maxRoundNbr) + " Rounds In Folder: " + folderPath + "...")
 
-# Main loop
-while True:
-    if keyboard.read_key() == 'q' or roundNbr == maxRoundNbr + 1:
-        video.release()
-        cv2.destroyAllWindows()
-        break
+def scanInput():
+    while True:
+        keyPressed = keyboard.read_key()
+        if keyPressed == 'q' or roundNbr == maxRoundNbr + 1:
+            video.release()
+            cv2.destroyAllWindows()
+            print("Capturing Ended.")
+            sys.exit()
 
-    if keyboard.read_key() == "c":
+        if keyPressed == "c":
+            success, img = video.read()
+            cv2.resize(img, (1920, 1080))
+            fileName = datetime.now().strftime('%d-%m-%Y_%H%M%S') + ".jpg"
+            filePath = os.path.join(manualCapturePath, fileName)
+            print("Manual Capture saved as '" + filePath + "'")
+            cv2.imwrite(filePath, img)
+
+def recognize():
+    # Main loop
+    while True:
+        # Get one frame, resize and crop
         success, img = video.read()
         cv2.resize(img, (1920, 1080))
-        fileName = datetime.now().strftime('%d-%m-%Y_%H%M%S') + ".jpg"
-        filePath = os.path.join(manualCapturePath, fileName)
-        print("Manual Capture saved as '" + filePath + "'")
-        cv2.imwrite(filePath, img)
 
-    # Get one frame, resize and crop
-    success, img = video.read()
-    cv2.resize(img, (1920, 1080))
+        cropped = img[57:57+48, 66:66+48]
+        result = cv2.matchTemplate(cropped, x, cv2.TM_CCOEFF_NORMED)
+        (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(result)
 
-    cropped = img[57:57+48, 66:66+48]
-    result = cv2.matchTemplate(cropped, x, cv2.TM_CCOEFF_NORMED)
-    (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(result)
+        if args.debug:
+            cv2.imshow("Result", img)
+            cv2.imshow("cropped", cropped)
 
-    if args.debug:
-        cv2.imshow("Result", img)
-        cv2.imshow("cropped", cropped)
+        # If matching template over 70%
+        if(maxVal > 0.7):
+            # Wait 3 seconds (animations, adding points...)
+            time.sleep(3)
 
-    # If matching template over 70%
-    if(maxVal > 0.7):
-        # Wait 3 seconds (animations, adding points...)
-        time.sleep(3)
+            # Get leaderboard and save it
+            success, img = video.read()
+            cv2.resize(img, (1920, 1080))
+            fileName = "Round_" + str(roundNbr) + ".jpg"
+            
+            filePath = os.path.join(folderPath, fileName)
+            cv2.imwrite(filePath, img)
+            os.system("start http://localhost/table.html?file=" + folderName + "/" + fileName)
 
-        # Get leaderboard and save it
-        success, img = video.read()
-        cv2.resize(img, (1920, 1080))
-        fileName = "Round_" + str(roundNbr) + ".jpg"
-        
-        filePath = os.path.join(folderPath, fileName)
-        cv2.imwrite(filePath, img)
-        os.system("start http://localhost/table.html?file=" + folderName + "/" + fileName)
+            roundNbr += 1
+            time.sleep(10)
+            print("Captured Round #" + str(roundNbr - 1))
 
-        roundNbr += 1
-        time.sleep(10)
-        print("Captured Round #" + str(roundNbr - 1))
-
-print("Capturing Ended.")
+if __name__ == "__main__":
+    threadRecognize = Thread(target = recognize)
+    threadRecognize.start()    
+    threadScanInput = Thread(target = scanInput)
+    threadScanInput.start()
