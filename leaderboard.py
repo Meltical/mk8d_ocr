@@ -16,12 +16,12 @@ def scanInput():
         keyPressed = keyboard.read_key()
         if args.debug:
             print(str("key pressed: " + keyPressed))
-        if keyPressed == 'f9' or roundNbr == maxRoundNbr + 1 or (cv2.waitKey(1) & 0xFF == ord('q')):
+        if keyPressed == 'pg.prec' or roundNbr == maxRoundNbr + 1 or (cv2.waitKey(1) & 0xFF == ord('q')):
             print("Capturing Ended.")
             with lock:
                 run = False
 
-        if keyPressed == "f12":
+        if keyPressed == "pg.suiv":
             success, img = video.read()
             cv2.resize(img, (1920, 1080))
             fileName = datetime.now().strftime('%d-%m-%Y_%H%M%S') + ".jpg"
