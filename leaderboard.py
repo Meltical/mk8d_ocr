@@ -5,7 +5,7 @@ import os
 import sys
 import keyboard
 from datetime import datetime
-from threading import Thread
+from multiprocessing import Process
 
 # Template
 x = cv2.imread("./samples/x.jpg")
@@ -115,9 +115,11 @@ def recognize():
             print("Captured Round #" + str(roundNbr - 1))
 
 if __name__ == "__main__":
-    threadRecognize = Thread(target = recognize)
-    threadScanInput = Thread(target = scanInput)
+    threadRecognize = Process(target = recognize)
+    threadScanInput = Process(target = scanInput)
+
     threadRecognize.start()  
     threadScanInput.start()
+    
     threadRecognize.join()  
     threadScanInput.join()
