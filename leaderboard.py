@@ -5,75 +5,23 @@ import os
 import sys
 import keyboard
 from datetime import datetime
-from multiprocessing import Process
+from threading import Thread
+import threading
 
-# Template
-x = cv2.imread("./samples/x.jpg")
-
-# Variables
-roundNbr = 1
-maxRoundNbr = 12
-manualCapturePath = os.path.join(os.getcwd(), "manual_capture")
-
-# Parse arguments: 
-parser=argparse.ArgumentParser()
-parser.add_argument('--name', help='Change Folder Name (Default: Current Date)')
-parser.add_argument('--max', help='Change Max Round Number (Default: 12)')
-parser.add_argument('--card', help='Change Capture Card Index (Default: 1)')
-parser.add_argument('--debug', help='Show the cv2 screen (Default: false)', dest='debug', default=False, action='store_true')
-args=parser.parse_args()
-
-# --name
-cwd = os.path.abspath(os.getcwd())
-if args.name:
-    folderName = str(args.name)
-else:
-    folderName = datetime.now().strftime('%d-%m-%Y_%H%M%S')
-
-if not os.path.exists(manualCapturePath):
-    os.mkdir(manualCapturePath)
-
-if not os.path.exists(os.path.join(os.getcwd(), "war")):
-    os.mkdir(os.path.join(os.getcwd(), "war"))
-
-folderPath = os.path.join(str(cwd), "war", folderName)
-if os.path.exists(folderPath):
-    print("Folder name already exists.")
-    sys.exit()
-os.mkdir(folderPath)
-
-# --max
-if args.max:
-    maxRoundNbr = int(args.max)
-
-# --card
-# Get Video from Capture Card (720p)
-card = 1
-if args.card:
-    card = args.card
-video = cv2.VideoCapture(int(card))
-video.set(3, 1920)
-video.set(4, 1080)
-
-if not video.isOpened():
-    print("Wrong capture card selected (" + str(card) + "). Try another index.")
-    sys.exit()
-
-# Start Web Server
-os.system("start run_local_server.bat")
-
-print("Capturing " + str(maxRoundNbr) + " Rounds In Folder: " + folderPath + "...")
+lock = threading.RLock()
 
 def scanInput():
-    while True:
+    global run, args, video, roundNbr, maxRoundNbr, manualCapturePath
+    while run:
         keyPressed = keyboard.read_key()
-        if keyPressed == 'q' or roundNbr == maxRoundNbr + 1:
-            video.release()
-            cv2.destroyAllWindows()
+        if args.debug:
+            print(str("key pressed: " + keyPressed))
+        if keyPressed == 'f9' or roundNbr == maxRoundNbr + 1 or (cv2.waitKey(1) & 0xFF == ord('q')):
             print("Capturing Ended.")
-            sys.exit()
+            with lock:
+                run = False
 
-        if keyPressed == "c":
+        if keyPressed == "f12":
             success, img = video.read()
             cv2.resize(img, (1920, 1080))
             fileName = datetime.now().strftime('%d-%m-%Y_%H%M%S') + ".jpg"
@@ -81,20 +29,24 @@ def scanInput():
             print("Manual Capture saved as '" + filePath + "'")
             cv2.imwrite(filePath, img)
 
-def recognize():
-    # Main loop
-    while True:
+def recognize(template):
+    global run, args, video, roundNbr, folderPath, folderName
+    while run:
         # Get one frame, resize and crop
         success, img = video.read()
         cv2.resize(img, (1920, 1080))
 
         cropped = img[57:57+48, 66:66+48]
-        result = cv2.matchTemplate(cropped, x, cv2.TM_CCOEFF_NORMED)
+        result = cv2.matchTemplate(cropped, template, cv2.TM_CCOEFF_NORMED)
         (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(result)
 
         if args.debug:
+            print("recognizing...")
             cv2.imshow("Result", img)
             cv2.imshow("cropped", cropped)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                video.release()
+                cv2.destroyAllWindows()
 
         # If matching template over 70%
         if(maxVal > 0.7):
@@ -110,16 +62,80 @@ def recognize():
             cv2.imwrite(filePath, img)
             os.system("start http://localhost/table.html?file=" + folderName + "/" + fileName)
 
-            roundNbr += 1
+            with lock:
+                roundNbr += 1
+
             time.sleep(10)
             print("Captured Round #" + str(roundNbr - 1))
 
+    video.release()
+    cv2.destroyAllWindows()
+    
+
 if __name__ == "__main__":
-    threadRecognize = Process(target = recognize)
-    threadScanInput = Process(target = scanInput)
+    global run, args, video, roundNbr, folderPath, folderName, maxRoundNbr, manualCapturePath
+    
+    # Template
+    x = cv2.imread("./samples/x.jpg")
+
+    # Variables
+    roundNbr = 1
+    maxRoundNbr = 12
+    manualCapturePath = os.path.join(os.getcwd(), "manual_capture")
+    run = True
+
+    # Parse arguments: 
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--name', help='Change Folder Name (Default: Current Date)')
+    parser.add_argument('--max', help='Change Max Round Number (Default: 12)')
+    parser.add_argument('--card', help='Change Capture Card Index (Default: 1)')
+    parser.add_argument('--debug', help='Show the cv2 screen (Default: false)', dest='debug', default=False, action='store_true')
+    args=parser.parse_args()
+
+    # --name
+    cwd = os.path.abspath(os.getcwd())
+    if args.name:
+        folderName = str(args.name)
+    else:
+        folderName = datetime.now().strftime('%d-%m-%Y_%H%M%S')
+
+    if not os.path.exists(manualCapturePath):
+        os.mkdir(manualCapturePath)
+
+    if not os.path.exists(os.path.join(os.getcwd(), "war")):
+        os.mkdir(os.path.join(os.getcwd(), "war"))
+
+    folderPath = os.path.join(str(cwd), "war", folderName)
+    if os.path.exists(folderPath):
+        print("Folder name already exists.")
+        sys.exit()
+    os.mkdir(folderPath)
+
+    # --max
+    if args.max:
+        maxRoundNbr = int(args.max)
+
+    # --card
+    # Get Video from Capture Card (720p)
+    card = 1
+    if args.card:
+        card = args.card
+    video = cv2.VideoCapture(int(card))
+    video.set(3, 1920)
+    video.set(4, 1080)
+
+    if not video.isOpened():
+        print("Wrong capture card selected (" + str(card) + "). Try another index.")
+        sys.exit()
+
+    # Start Web Server
+    os.system("start run_local_server.bat")
+
+    print("Capturing " + str(maxRoundNbr) + " Rounds In Folder: " + folderPath + "...")
+    
+    # Create and start threads
+    threadRecognize = Thread(target = recognize, args=[x])
+    threadScanInput = Thread(target = scanInput)
 
     threadRecognize.start()  
     threadScanInput.start()
-    
-    threadRecognize.join()  
-    threadScanInput.join()
