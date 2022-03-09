@@ -41,7 +41,7 @@ def recognize(template):
         (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(result)
 
         if args.debug:
-            print("recognizing...")
+            print("maxVal: " + str(maxVal))
             cv2.imshow("Result", img)
             cv2.imshow("cropped", cropped)
             if cv2.waitKey(1) & 0xFF == ord('q'):
