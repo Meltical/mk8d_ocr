@@ -116,6 +116,8 @@ def recognize():
 
 if __name__ == "__main__":
     threadRecognize = Thread(target = recognize)
-    threadRecognize.start()    
     threadScanInput = Thread(target = scanInput)
+    threadRecognize.start()  
     threadScanInput.start()
+    threadRecognize.join()  
+    threadScanInput.join()
