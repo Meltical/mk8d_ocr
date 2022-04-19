@@ -22,7 +22,8 @@ def scanInput():
                 run = False
 
         if keyPressed == "pg.suiv":
-            img = frame
+            _, img = video.read()
+            _, img = video.read()
             cv2.resize(img, (1920, 1080))
             fileName = datetime.now().strftime('%d-%m-%Y_%H%M%S') + ".jpg"
             filePath = os.path.join(manualCapturePath, fileName)
@@ -34,7 +35,7 @@ def recognize(template):
     global run, args, video, roundNbr, folderPath, folderName
     while run:
         # Get one frame, resize and crop
-        img = frame
+        _, img = video.read()
         cv2.resize(img, (1920, 1080))
 
         cropped = img[57:57+48, 66:66+48]
@@ -55,7 +56,7 @@ def recognize(template):
             time.sleep(3)
 
             # Get leaderboard and save it
-            img = frame
+            _, img = video.read()
             cv2.resize(img, (1920, 1080))
             fileName = "Round_" + str(roundNbr) + ".jpg"
             
@@ -72,20 +73,6 @@ def recognize(template):
     video.release()
     cv2.destroyAllWindows()
     
-def videoStream():
-    global run, args, video, roundNbr, folderPath, folderName, frameSuccess, frame
-    while run:
-        # Get one frame, resize and crop
-        frameSuccess, frame = video.read()
-        if args.debug:
-            cv2.imshow("Video", frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                video.release()
-                cv2.destroyAllWindows()
-            
-    video.release()
-    cv2.destroyAllWindows()
-
 if __name__ == "__main__":
     global run, args, video, roundNbr, folderPath, folderName, maxRoundNbr, manualCapturePath
     
@@ -151,7 +138,6 @@ if __name__ == "__main__":
     if args.auto:
         threads.append(Thread(target=recognize, args=(x,)))
     
-    threads.append(Thread(target = videoStream))
     threads.append(Thread(target = scanInput))
 
     # Start all the threads from the pool
