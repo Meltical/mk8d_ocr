@@ -28,6 +28,7 @@ def scanInput():
             filePath = os.path.join(manualCapturePath, fileName)
             print("Manual Capture saved as '" + filePath + "'")
             cv2.imwrite(filePath, img)
+            os.system("start http://localhost/table.html?file=manual_capture/" + fileName)
 
 def recognize(template):
     global run, args, video, roundNbr, folderPath, folderName
@@ -60,7 +61,7 @@ def recognize(template):
             
             filePath = os.path.join(folderPath, fileName)
             cv2.imwrite(filePath, img)
-            os.system("start http://localhost/table.html?file=" + folderName + "/" + fileName)
+            os.system("start http://localhost/table.html?file=war/" + folderName + "/" + fileName)
 
             with lock:
                 roundNbr += 1
@@ -90,26 +91,28 @@ if __name__ == "__main__":
     parser.add_argument('--max', help='Change Max Round Number (Default: 12)')
     parser.add_argument('--card', help='Change Capture Card Index (Default: 1)')
     parser.add_argument('--debug', help='Show the cv2 screen (Default: false)', dest='debug', default=False, action='store_true')
+    parser.add_argument('--auto', help='Automatically trigger end round (Default: false)', dest='auto', default=False, action='store_true')
     args=parser.parse_args()
 
     # --name
     cwd = os.path.abspath(os.getcwd())
-    if args.name:
-        folderName = str(args.name)
-    else:
-        folderName = datetime.now().strftime('%d-%m-%Y_%H%M%S')
-
+    if args.auto:
+        if args.name:
+            folderName = str(args.name)
+        else:
+            folderName = datetime.now().strftime('%d-%m-%Y_%H%M%S')
+        
+            folderPath = os.path.join(str(cwd), "war", folderName)
+            if os.path.exists(folderPath):
+                print("Folder name already exists.")
+                sys.exit()
+            os.mkdir(folderPath)
+    
     if not os.path.exists(manualCapturePath):
         os.mkdir(manualCapturePath)
 
     if not os.path.exists(os.path.join(os.getcwd(), "war")):
         os.mkdir(os.path.join(os.getcwd(), "war"))
-
-    folderPath = os.path.join(str(cwd), "war", folderName)
-    if os.path.exists(folderPath):
-        print("Folder name already exists.")
-        sys.exit()
-    os.mkdir(folderPath)
 
     # --max
     if args.max:
@@ -117,7 +120,7 @@ if __name__ == "__main__":
 
     # --card
     # Get Video from Capture Card (720p)
-    card = 1
+    card = 2
     if args.card:
         card = args.card
     video = cv2.VideoCapture(int(card))
@@ -133,9 +136,18 @@ if __name__ == "__main__":
 
     print("Capturing " + str(maxRoundNbr) + " Rounds In Folder: " + folderPath + "...")
     
-    # Create and start threads
-    threadRecognize = Thread(target = recognize, args=[x])
-    threadScanInput = Thread(target = scanInput)
+    # Create a pool of thread
+    threads = []  
+    
+    # Create threads
+    if(args.auto):
+        threads.append(Thread(target=recognize, args=(x,)))
+    threads.append(Thread(target = scanInput))
 
-    threadRecognize.start()  
-    threadScanInput.start()
+    # Start all the threads from the pool
+    for t in threads:
+        t.start()
+
+    # Wait for all threads to complete
+    for t in threads:
+        t.join()
