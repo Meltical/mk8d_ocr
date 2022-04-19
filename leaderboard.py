@@ -22,7 +22,7 @@ def scanInput():
                 run = False
 
         if keyPressed == "pg.suiv":
-            success, img = video.read()
+            img = frame
             cv2.resize(img, (1920, 1080))
             fileName = datetime.now().strftime('%d-%m-%Y_%H%M%S') + ".jpg"
             filePath = os.path.join(manualCapturePath, fileName)
@@ -34,7 +34,7 @@ def recognize(template):
     global run, args, video, roundNbr, folderPath, folderName
     while run:
         # Get one frame, resize and crop
-        success, img = video.read()
+        img = frame
         cv2.resize(img, (1920, 1080))
 
         cropped = img[57:57+48, 66:66+48]
@@ -55,7 +55,7 @@ def recognize(template):
             time.sleep(3)
 
             # Get leaderboard and save it
-            success, img = video.read()
+            img = frame
             cv2.resize(img, (1920, 1080))
             fileName = "Round_" + str(roundNbr) + ".jpg"
             
@@ -72,6 +72,18 @@ def recognize(template):
     video.release()
     cv2.destroyAllWindows()
     
+def videoStream():
+    global run, args, video, roundNbr, folderPath, folderName, frameSuccess, frame
+    while run:
+        # Get one frame, resize and crop
+        frameSuccess, frame = video.read()
+        cv2.imshow("Video", frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            video.release()
+            cv2.destroyAllWindows()
+            
+    video.release()
+    cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     global run, args, video, roundNbr, folderPath, folderName, maxRoundNbr, manualCapturePath
@@ -96,10 +108,8 @@ if __name__ == "__main__":
 
     cwd = os.path.abspath(os.getcwd())
     if args.auto:
-        
         if args.max:
             maxRoundNbr = int(args.max)
-        
         if args.name:
             folderName = str(args.name)
         else:
@@ -112,12 +122,12 @@ if __name__ == "__main__":
             os.mkdir(folderPath)
             print("Capturing " + str(maxRoundNbr) + " Rounds In Folder: " + folderPath + "...")
     
+    # Create folders
     if not os.path.exists(manualCapturePath):
         os.mkdir(manualCapturePath)
 
     if not os.path.exists(os.path.join(os.getcwd(), "war")):
         os.mkdir(os.path.join(os.getcwd(), "war"))
-
 
     card = 2
     if args.card:
@@ -137,14 +147,17 @@ if __name__ == "__main__":
     threads = []  
     
     # Create threads
-    if(args.auto):
+    if args.auto:
         threads.append(Thread(target=recognize, args=(x,)))
+    
+    threads.append(Thread(target = videoStream))
     threads.append(Thread(target = scanInput))
 
     # Start all the threads from the pool
     for t in threads:
         t.start()
-
+    cv2.startWindowThread()
+    
     # Wait for all threads to complete
     for t in threads:
         t.join()
