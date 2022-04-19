@@ -77,10 +77,11 @@ def videoStream():
     while run:
         # Get one frame, resize and crop
         frameSuccess, frame = video.read()
-        cv2.imshow("Video", frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            video.release()
-            cv2.destroyAllWindows()
+        if args.debug:
+            cv2.imshow("Video", frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                video.release()
+                cv2.destroyAllWindows()
             
     video.release()
     cv2.destroyAllWindows()
