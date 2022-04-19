@@ -94,9 +94,12 @@ if __name__ == "__main__":
     parser.add_argument('--auto', help='Automatically trigger end round (Default: false)', dest='auto', default=False, action='store_true')
     args=parser.parse_args()
 
-    # --name
     cwd = os.path.abspath(os.getcwd())
     if args.auto:
+        
+        if args.max:
+            maxRoundNbr = int(args.max)
+        
         if args.name:
             folderName = str(args.name)
         else:
@@ -107,6 +110,7 @@ if __name__ == "__main__":
                 print("Folder name already exists.")
                 sys.exit()
             os.mkdir(folderPath)
+            print("Capturing " + str(maxRoundNbr) + " Rounds In Folder: " + folderPath + "...")
     
     if not os.path.exists(manualCapturePath):
         os.mkdir(manualCapturePath)
@@ -114,12 +118,7 @@ if __name__ == "__main__":
     if not os.path.exists(os.path.join(os.getcwd(), "war")):
         os.mkdir(os.path.join(os.getcwd(), "war"))
 
-    # --max
-    if args.max:
-        maxRoundNbr = int(args.max)
 
-    # --card
-    # Get Video from Capture Card (720p)
     card = 2
     if args.card:
         card = args.card
@@ -133,8 +132,6 @@ if __name__ == "__main__":
 
     # Start Web Server
     os.system("start run_local_server.bat")
-
-    print("Capturing " + str(maxRoundNbr) + " Rounds In Folder: " + folderPath + "...")
     
     # Create a pool of thread
     threads = []  
