@@ -7,9 +7,19 @@ import keyboard
 from datetime import datetime
 from threading import Thread
 import threading
+import numpy as np
+import pyvirtualcam
 
 lock = threading.RLock()
 
+def virtualCamera():
+    global run, args, video, roundNbr, maxRoundNbr, manualCapturePath
+    with pyvirtualcam.Camera(width=1920, height=1080, fps=30) as cam:
+        print(f'Virtual cam started: {cam.device} ({cam.width}x{cam.height} @ {cam.fps}fps)')
+        while run:
+            cam.send(video.read()[1])
+            cam.sleep_until_next_frame()
+            
 def scanInput():
     global run, args, video, roundNbr, maxRoundNbr, manualCapturePath
     while run:
@@ -92,6 +102,7 @@ if __name__ == "__main__":
     parser.add_argument('--card', help='Change Capture Card Index (Default: 1)')
     parser.add_argument('--debug', help='Show the cv2 screen (Default: false)', dest='debug', default=False, action='store_true')
     parser.add_argument('--auto', help='Automatically trigger end round (Default: false)', dest='auto', default=False, action='store_true')
+    parser.add_argument('--virtual', help='Create a virtual camera to use for streaming (Default: false)', dest='virtual', default=False, action='store_true')
     args=parser.parse_args()
 
     cwd = os.path.abspath(os.getcwd())
@@ -139,6 +150,9 @@ if __name__ == "__main__":
         threads.append(Thread(target=recognize, args=(x,)))
     
     threads.append(Thread(target = scanInput))
+    
+    if args.virtual:
+        threads.append(Thread(target = virtualCamera))
 
     # Start all the threads from the pool
     for t in threads:
