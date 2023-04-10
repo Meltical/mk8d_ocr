@@ -2,6 +2,7 @@
   "dependencies": {
     "@google-cloud/local-auth": "^2.1.1",
     "canvas": "^2.11.2",
+    "dotenv": "^16.0.3",
     "fs": "^0.0.1-security",
     "googleapis": "^114.0.0",
     "jsdom": "^21.1.1",

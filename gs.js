@@ -3,6 +3,7 @@ const path = require("path")
 const process = require("process")
 const { authenticate } = require("@google-cloud/local-auth")
 const { google } = require("googleapis")
+require('dotenv').config(); 
 
 // If modifying these scopes, delete token.json.
 const SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
@@ -12,8 +13,8 @@ const SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 const TOKEN_PATH = path.join(process.cwd(), "token.json")
 const CREDENTIALS_PATH = path.join(process.cwd(), "credentials.json")
 
-const SPREADSHEET_ID = ""
-const SHEET = ""
+const SPREADSHEET_ID = process.env.SPREADSHEET_ID
+const SHEET = process.env.SHEET
 const RANGE_1 = "A1:C12"
 const RANGE_2 = "Q1:S12"
 const RANGE_3 = "AG1:AI12"
