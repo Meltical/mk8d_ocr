@@ -1,7 +1,7 @@
 Adds a python CLI to auto generate tables.
 
 ```
-usage: leaderboard.py [-h] [--name NAME] [--max MAX] [--card CARD] [--debug] [--auto]
+usage: leaderboard.py [-h] [--name NAME] [--max MAX] [--card CARD] [--debug] [--auto] [--virtual] [--lorenzi]
 
 options:
   -h, --help   show this help message and exit
@@ -10,6 +10,8 @@ options:
   --card CARD  Change Capture Card Index (Default: 1)
   --debug      Show the cv2 screen (Default: false)
   --auto       Automatically trigger end round (Default: false)
+  --virtual    Create a virtual camera to use for streaming (Default: false)
+  --lorenzi    Open Lorenzi table maker (Default: false)
 ```
 
 Screenshots:

@@ -1,20 +1,26 @@
 import argparse
-import time
-import cv2
+import base64
 import os
 import sys
-import keyboard
-from datetime import datetime
-from threading import Thread
 import threading
+import time
+from datetime import datetime
+from subprocess import call
+from threading import Thread
+
+import cv2
+import keyboard
 import numpy as np
 import pyvirtualcam
 
 lock = threading.RLock()
 
+def toGs(imgPath):
+    call(["node", "./main.js", imgPath, str(roundNbr)])
+
 def virtualCamera():
     global run, args, video, roundNbr, maxRoundNbr, manualCapturePath
-    with pyvirtualcam.Camera(width=1920, height=1080, fps=30) as cam:
+    with pyvirtualcam.Camera(width=1920, height=1080, fps=60) as cam:
         print(f'Virtual cam started: {cam.device} ({cam.width}x{cam.height} @ {cam.fps}fps)')
         while run:
             cam.send(video.read()[1])
@@ -39,7 +45,15 @@ def scanInput():
             filePath = os.path.join(manualCapturePath, fileName)
             print("Manual Capture saved as '" + filePath + "'")
             cv2.imwrite(filePath, img)
-            os.system("start http://localhost/table.html?file=manual_capture/" + fileName)
+            
+            if args.lorenzi:
+                os.system("start http://localhost/table.html?file=manual_capture/" + fileName)
+            
+            toGs('manual_capture/' + os.path.join(fileName))
+            
+            print("Captured Round #" + str(roundNbr))
+            with lock:
+                roundNbr += 1
 
 def recognize(template):
     global run, args, video, roundNbr, folderPath, folderName
@@ -72,8 +86,11 @@ def recognize(template):
             
             filePath = os.path.join(folderPath, fileName)
             cv2.imwrite(filePath, img)
-            os.system("start http://localhost/table.html?file=war/" + folderName + "/" + fileName)
-
+            if args.lorenzi:
+                os.system("start http://localhost/table.html?file=war/" + folderName + "/" + fileName)
+                
+            toGs("war/" + folderName + "/" + fileName)
+            
             with lock:
                 roundNbr += 1
 
@@ -94,6 +111,7 @@ if __name__ == "__main__":
     maxRoundNbr = 12
     manualCapturePath = os.path.join(os.getcwd(), "manual_capture")
     run = True
+    card = 1
 
     # Parse arguments: 
     parser=argparse.ArgumentParser()
@@ -103,7 +121,12 @@ if __name__ == "__main__":
     parser.add_argument('--debug', help='Show the cv2 screen (Default: false)', dest='debug', default=False, action='store_true')
     parser.add_argument('--auto', help='Automatically trigger end round (Default: false)', dest='auto', default=False, action='store_true')
     parser.add_argument('--virtual', help='Create a virtual camera to use for streaming (Default: false)', dest='virtual', default=False, action='store_true')
+    parser.add_argument('--lorenzi', help='Open Lorenzi table maker (Default: false)', dest='lorenzi', default=False, action='store_true')
+    parser.add_argument('--round', help='Starting round number (Default: 1)')
     args=parser.parse_args()
+    
+    if args.round:
+        roundNbr = int(args.round)
 
     cwd = os.path.abspath(os.getcwd())
     if args.auto:
@@ -128,7 +151,6 @@ if __name__ == "__main__":
     if not os.path.exists(os.path.join(os.getcwd(), "war")):
         os.mkdir(os.path.join(os.getcwd(), "war"))
 
-    card = 2
     if args.card:
         card = args.card
     video = cv2.VideoCapture(int(card))
@@ -140,7 +162,8 @@ if __name__ == "__main__":
         sys.exit()
 
     # Start Web Server
-    os.system("start run_local_server.bat")
+    if args.lorenzi:
+        os.system("start run_local_server.bat")
     
     # Create a pool of thread
     threads = []  
