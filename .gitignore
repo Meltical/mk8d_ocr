@@ -1,3 +1,8 @@
 /old/
 /war/
 leaderboard.py.bak
+credentials.json
+token.json
+/manual_capture/
+node_modules
+.env
